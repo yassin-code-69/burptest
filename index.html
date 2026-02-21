@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoutinePro</title>
+    <link rel="icon" type="image/png" href="favicon_light.png">
+    <!-- <link rel="icon" type="image/png" sizes="32x32" href="favicon_light.png"> -->
+    <!-- <link rel="icon" type="image/png" sizes="192x192" href="favicon_light_large.png"> -->
+    <!-- <link rel="apple-touch-icon" sizes="180x180" href="favicon_light_large.png"> -->
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="announcement-banner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bell-icon"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        <strong>Announcement</strong>
+        <span class="separator">·</span>
+        <span>This website is still under development, so you might encounter some bugs.</span>
+    </div>
+
+    <nav class="glass-nav">
+        <div class="nav-wrapper">
+            <a href="#" onclick="window.location.reload()" class="logo">
+                <div class="logo-box"><img src="favicon.png" alt="Logo" onerror="this.style.display='none'"></div>
+                <div class="logo-text">Routine<span>Pro</span></div>
+            </a>
+            <div class="nav-tools">
+                <button onclick="toggleModal('mappingModal')" class="icon-btn" title="Data Settings">⚙️</button>
+                <button id="themeToggle" class="icon-btn" title="Toggle Theme">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="glass-card dashboard">
+            <div class="upload-section" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-content-left">
+                    <div class="icon-box">📂</div>
+                    <div class="upload-text">
+                        <h3>Upload Routine File</h3>
+                        <p>Supports .xlsx & .xls formats or Auto-Sync</p>
+                    </div>
+                </div>
+                <div id="fileStatus" class="status-indicator">No file chosen</div>
+                <input type="file" id="fileInput" accept=".xlsx, .xls" hidden>
+            </div>
+
+            <div class="search-bar">
+                <div class="input-group">
+                   <label>DEPT</label>
+    <input type="text" id="dept" list="deptOptions" class="premium-input" placeholder="e.g. CSE" value="">
+    
+    <datalist id="deptOptions">
+        <option value="CSE">
+        <option value="BBA">
+        <option value="EEE">
+        <option value="ENG">
+        <option value="ECO">
+        <option value="SOC">
+        <option value="LAW">
+        <option value="PHARM">
+        <option value="MATH">
+    </datalist>
+                </div>
+                <div class="input-group">
+                    <label>BATCH</label>
+                    <input type="text" id="batch" class="premium-input" placeholder="e.g. 69" value="">
+                </div>
+                <div class="input-group">
+                    <label>SECTION</label>
+                    <input type="text" id="section" class="premium-input" placeholder="e.g. A" value="">
+                </div>
+                <button onclick="searchRoutine()" class="btn-primary">🔍 FIND SCHEDULE</button>
+            </div>
+            
+            <div class="action-buttons">
+                <button onclick="saveAsPDF()" class="btn-pdf">📄 Save as PDF</button>
+                <button onclick="captureSchedule()" class="btn-capture">📸 Save as Image (HD)</button>
+            </div>
+        </section>
+
+        <section id="resultSection" class="result-area hidden">
+            <div id="liveStatusContainer" class="live-status-card hidden">
+                <div class="live-status-header"><span class="live-pulse"></span><strong>RIGHT NOW</strong></div>
+                <div id="liveClassDetails"></div>
+            </div>
+
+            <div class="result-header">
+                <div class="title-group">
+                    <h2 id="routineTitle">Class Schedule</h2>
+                    <div id="currentDate" class="current-date"></div>
+                </div>
+                <div class="header-actions">
+                    <div class="view-toggle-group">
+                        <button id="btnListView" class="toggle-btn active" title="List View">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> List
+                        </button>
+                        <button id="btnGridView" class="toggle-btn" title="Grid View">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> Grid
+                        </button>
+                    </div>
+                    
+                    <button onclick="toggleModal('prefModal')" class="icon-btn pref-btn" title="View Preferences">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+                    </button>
+
+                    <span id="classCount" class="count-badge">0 Classes</span>
+                </div>
+            </div>
+            
+            <div class="day-tabs" id="dayTabs"></div>
+            <div id="routineList"></div>
+        </section>
+    </main>
+
+    <footer class="glass-footer">
+        <div class="footer-container">
+            <div class="footer-col brand-col">
+                <h3>Routine<span>Pro</span></h3>
+                <p>Advanced Class Schedule Automation for
+                <strong>CSE Department</strong>, Built for speed and efficiency.</p>
+                <div class="dev-badge"><span>👨‍💻 Developed by <strong>BUCPC</strong></span></div>
+            </div>
+            <div class="footer-col links-col">
+                <h4>Explore</h4>
+                <ul>
+                    <li><a href="#" onclick="window.location.reload()">🏠 Home</a></li>
+                    <li><a href="#" onclick="toggleModal('mappingModal')">⚙️ Settings</a></li>
+                    <li><a href="#" onclick="saveAsPDF()">📄 Export PDF</a></li>
+                </ul>
+            </div>
+            <div class="footer-col social-col">
+                <h4>Connect</h4>
+                <div class="social-grid">
+                    <a href="https://github.com/YOUR_USERNAME" target="_blank" class="social-link github" title="GitHub">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                    </a>
+                    <a href="https://linkedin.com/in/YOUR_PROFILE" target="_blank" class="social-link linkedin" title="LinkedIn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                    </a>
+                    <a href="https://facebook.com/YOUR_PROFILE" target="_blank" class="social-link facebook" title="Facebook">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2026 RoutinePro. All rights reserved.</p></div>
+    </footer>
+
+    <div id="mappingModal" class="modal-backdrop hidden">
+        <div class="modal-box premium-modal">
+            <div class="modal-head">
+                <div class="modal-title-group">
+                    <div class="icon-circle">⚙️</div>
+                    <div class="title-text">
+                        <h2>Data Mapping</h2>
+                        <p>Customize course and teacher names</p>
+                    </div>
+                </div>
+                <button onclick="toggleModal('mappingModal')" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-group">
+                    <div class="group-header">
+                        <label>📚 Course Data</label>
+                        <span class="hint-badge">CODE: Full Name</span>
+                    </div>
+                    <textarea id="courseMapData" class="premium-textarea" placeholder="Example...&#10;CSE-101: Intro to Computer Science"></textarea>
+                </div>
+                <div class="config-group">
+                    <div class="group-header">
+                        <label>👨‍🏫 Teacher Data</label>
+                        <span class="hint-badge">INITIAL: Full Name</span>
+                    </div>
+                    <textarea id="teacherMapData" class="premium-textarea" placeholder="Example...&#10;JD: John Doe"></textarea>
+                </div>
+            </div>
+            <button onclick="saveMappings()" class="btn-save premium-save-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                Save Changes
+            </button>
+        </div>
+    </div>
+
+    <div id="prefModal" class="modal-backdrop hidden">
+        <div class="modal-box pref-box">
+            <div class="modal-head">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <h2 style="margin:0;">View Preferences</h2>
+                    <span style="font-size:13px; color:var(--subtext);">Customize your schedule layout and details.</span>
+                </div>
+                <button onclick="toggleModal('prefModal')" class="close-btn">&times;</button>
+            </div>
+            
+            <div class="pref-section">
+                <div class="pref-label">LAYOUT</div>
+                <div class="pref-item">
+                    <div class="pref-info">
+                        <strong>Compact Mode</strong>
+                        <span>Reduce padding and spacing</span>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="prefCompact" onchange="updatePreferences()"><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <div class="pref-section">
+                <div class="pref-label">DETAILS</div>
+                <div class="pref-item">
+                    <div class="pref-info">
+                        <strong>12-Hour Time</strong>
+                        <span>Format as 1:30 PM</span>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="pref12Hour" onchange="updatePreferences()"><span class="slider"></span></label>
+                </div>
+                <div class="pref-item">
+                    <div class="pref-info">
+                        <strong>Show Room Numbers</strong>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="prefRoom" onchange="updatePreferences()"><span class="slider"></span></label>
+                </div>
+                <div class="pref-item">
+                    <div class="pref-info">
+                        <strong>Show Teacher Name</strong>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="prefTeacher" onchange="updatePreferences()"><span class="slider"></span></label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
